@@ -1,0 +1,5 @@
+{
+  "name": "Montage Dispenses",
+  "description": "Application de montage et rognage automatique pour dispenses SNCF au format A4.",
+  "requestFramePermissions": []
+}
