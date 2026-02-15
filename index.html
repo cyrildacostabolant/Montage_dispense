@@ -6,7 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Montage Dispenses</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#0091d3">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
@@ -62,7 +64,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <!-- Chargement explicite du module principal pour Vercel/GitHub -->
   <script type="module" src="index.tsx"></script>
   <script>
     if ('serviceWorker' in navigator) {

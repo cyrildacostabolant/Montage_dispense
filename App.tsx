@@ -173,7 +173,7 @@ const App: React.FC = () => {
             <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-blue-100 flex-shrink-0 border-2 border-white bg-[#0091d3] flex items-center justify-center">
               {!iconError ? (
                 <img 
-                  src="/icon.png" 
+                  src="icon.png" 
                   alt="Logo" 
                   className="w-full h-full object-cover" 
                   onError={() => setIconError(true)} 

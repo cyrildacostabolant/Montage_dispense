@@ -1,12 +1,12 @@
 
-const CACHE_NAME = 'montage-dispenses-v2';
+const CACHE_NAME = 'montage-dispenses-v3';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/index.tsx',
-  '/manifest.json',
-  '/types.ts',
-  '/icon.png'
+  './',
+  './index.html',
+  './index.tsx',
+  './manifest.json',
+  './types.ts',
+  './icon.png'
 ];
 
 self.addEventListener('install', (event) => {

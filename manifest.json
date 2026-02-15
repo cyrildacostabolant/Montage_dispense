@@ -3,7 +3,7 @@
   "name": "Montage Dispenses",
   "short_name": "Dispenses",
   "description": "Montage automatique de billets SNCF sur page A4",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#0091d3",
