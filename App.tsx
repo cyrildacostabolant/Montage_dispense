@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2, Train } from 'lucide-react';
+import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2 } from 'lucide-react';
 import { CroppedImage } from './types';
 
 const CARD_WIDTH_MM = 75;
@@ -169,15 +169,18 @@ const App: React.FC = () => {
       <div className="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-6">
         <header>
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-200">
-              <Train size={28} strokeWidth={2.5} />
+            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-blue-100 flex-shrink-0 border-2 border-white">
+              <img src="icon.png" alt="Logo" className="w-full h-full object-cover" onError={(e) => {
+                // Fallback si l'image n'est pas encore présente
+                e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/725/725103.png";
+              }} />
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-              Montage <span className="text-blue-600">Dispenses</span>
+              Montage <span className="text-[#0091d3]">Dispenses</span>
             </h1>
           </div>
           <p className="text-slate-500 text-sm leading-snug">
-            Planche A4 automatisée pour vos dispenses. Rognage ultra-précis aligné en haut.
+            Optimisé pour les justificatifs SNCF. Rognage 7.5x11.25cm.
           </p>
         </header>
 
@@ -189,7 +192,7 @@ const App: React.FC = () => {
               className={`w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold transition-all shadow-md ${
                 isFull
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]'
+                  : 'bg-[#0091d3] text-white hover:bg-[#007bb3] active:scale-[0.98]'
               }`}
             >
               {isProcessing ? <Loader2 className="animate-spin" /> : <Plus size={20} strokeWidth={3} />}
@@ -230,7 +233,7 @@ const App: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate">{img.originalName}</p>
-                  <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Prêt</p>
+                  <p className="text-[10px] text-[#0091d3] font-bold uppercase tracking-wider">Prêt</p>
                 </div>
                 <button
                   onClick={() => removeImage(img.id)}
@@ -269,7 +272,7 @@ const App: React.FC = () => {
           
           <div className="absolute top-[-50px] left-0 right-0 flex justify-center pointer-events-none">
             <div className="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-black tracking-widest uppercase px-5 py-2 rounded-full border border-white/10 shadow-lg">
-              Planche A4 • Montage Dispenses
+              Format A4 • Impression Justificatifs
             </div>
           </div>
         </div>
