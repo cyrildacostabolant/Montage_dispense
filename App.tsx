@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2 } from 'lucide-react';
+import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2, Train } from 'lucide-react';
 import { CroppedImage } from './types';
 
 const CARD_WIDTH_MM = 75;
@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const [images, setImages] = useState<CroppedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [iconError, setIconError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const a4PageRef = useRef<HTMLDivElement>(null);
 
@@ -169,11 +170,17 @@ const App: React.FC = () => {
       <div className="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-6">
         <header>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-blue-100 flex-shrink-0 border-2 border-white">
-              <img src="icon.png" alt="Logo" className="w-full h-full object-cover" onError={(e) => {
-                // Fallback si l'image n'est pas encore présente
-                e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/725/725103.png";
-              }} />
+            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-blue-100 flex-shrink-0 border-2 border-white bg-[#0091d3] flex items-center justify-center">
+              {!iconError ? (
+                <img 
+                  src="/icon.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-cover" 
+                  onError={() => setIconError(true)} 
+                />
+              ) : (
+                <Train className="text-white" size={24} />
+              )}
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
               Montage <span className="text-[#0091d3]">Dispenses</span>
