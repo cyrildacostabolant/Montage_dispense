@@ -1,11 +1,16 @@
 
 import { Client, Storage, ID } from 'appwrite';
 
-const rawEndpoint = import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+// Helper pour récupérer les variables d'env de façon robuste
+const getEnv = (key: string) => {
+  return import.meta.env[key] || (window as any).process?.env?.[key] || '';
+};
+
+const rawEndpoint = getEnv('VITE_APPWRITE_ENDPOINT') || 'https://cloud.appwrite.io/v1';
 // Correction automatique si l'utilisateur oublie le 'h' ou met un espace
 const endpoint = rawEndpoint.trim().startsWith('ttp') ? `h${rawEndpoint.trim().replace(/^h?ttp/, 'ttp')}` : rawEndpoint.trim();
-const projectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
-const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
+const projectId = getEnv('VITE_APPWRITE_PROJECT_ID');
+const bucketId = getEnv('VITE_APPWRITE_BUCKET_ID');
 
 const client = new Client();
 
