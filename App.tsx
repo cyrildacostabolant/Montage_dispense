@@ -1,7 +1,8 @@
 
 import React, { useState, useRef } from 'react';
-import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2, Train } from 'lucide-react';
+import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2, Train, CloudUpload, CheckCircle2, History, LayoutDashboard, ExternalLink } from 'lucide-react';
 import { CroppedImage } from './types';
+import { saveToCloud, listCloudFiles, deleteCloudFile, getFilePreview, getFileDownload } from './services/appwrite';
 
 const CARD_WIDTH_MM = 75;
 const CARD_HEIGHT_MM = 112.5;
@@ -9,8 +10,13 @@ const SPACING_PX = 20;
 
 const App: React.FC = () => {
   const [images, setImages] = useState<CroppedImage[]>([]);
+  const [activeTab, setActiveTab] = useState<'editor' | 'backups'>('editor');
+  const [cloudFiles, setCloudFiles] = useState<any[]>([]);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSavingCloud, setIsSavingCloud] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [iconError, setIconError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const a4PageRef = useRef<HTMLDivElement>(null);
@@ -151,10 +157,12 @@ const App: React.FC = () => {
         backgroundColor: '#ffffff'
       });
 
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
       link.download = `planche_dispenses_${Date.now()}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.href = dataUrl;
       link.click();
+      return dataUrl;
     } catch (error) {
       console.error('Export error:', error);
       alert('Erreur lors de l\'exportation.');
@@ -163,7 +171,63 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveToCloud = async () => {
+    if (!a4PageRef.current || images.length === 0) return;
+    
+    setIsSavingCloud(true);
+    setSaveSuccess(false);
+    
+    try {
+      // On génère le canvas
+      const canvas = await window.html2canvas(a4PageRef.current, {
+        scale: 2, // Un peu moins lourd pour le cloud
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+      await saveToCloud(dataUrl, 'sncf');
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error: any) {
+      console.error('Cloud save error:', error);
+      alert(error.message || 'Erreur lors de la sauvegarde cloud.');
+    } finally {
+      setIsSavingCloud(false);
+    }
+  };
+
   const isFull = images.length >= 4;
+
+  const fetchCloudFiles = async () => {
+    setIsLoadingCloud(true);
+    try {
+      const files = await listCloudFiles();
+      setCloudFiles(files);
+    } catch (error) {
+      console.error('Error fetching cloud files:', error);
+    } finally {
+      setIsLoadingCloud(false);
+    }
+  };
+
+  const handleDeleteCloudFile = async (fileId: string) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette sauvegarde ?')) return;
+    try {
+      await deleteCloudFile(fileId);
+      setCloudFiles(prev => prev.filter(f => f.$id !== fileId));
+    } catch (error) {
+      alert('Erreur lors de la suppression.');
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeTab === 'backups') {
+      fetchCloudFiles();
+    }
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row gap-6 p-4 md:p-8 max-w-[1600px] mx-auto bg-slate-50">
@@ -191,7 +255,34 @@ const App: React.FC = () => {
           </p>
         </header>
 
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <nav className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+          <button
+            onClick={() => setActiveTab('editor')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'editor' 
+                ? 'bg-slate-900 text-white shadow-md' 
+                : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <LayoutDashboard size={14} />
+            Éditeur
+          </button>
+          <button
+            onClick={() => setActiveTab('backups')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'backups' 
+                ? 'bg-slate-900 text-white shadow-md' 
+                : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <History size={14} />
+            Sauvegardes
+          </button>
+        </nav>
+
+        {activeTab === 'editor' ? (
+          <>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
           <div className="space-y-3">
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -224,6 +315,27 @@ const App: React.FC = () => {
             >
               {isExporting ? <Loader2 className="animate-spin" /> : <Download size={20} strokeWidth={3} />}
               Exporter Planche A4
+            </button>
+
+            <button
+              onClick={handleSaveToCloud}
+              disabled={images.length === 0 || isSavingCloud}
+              className={`w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold transition-all shadow-lg ${
+                images.length === 0 || isSavingCloud
+                  ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                  : saveSuccess 
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]'
+              }`}
+            >
+              {isSavingCloud ? (
+                <Loader2 className="animate-spin" />
+              ) : saveSuccess ? (
+                <CheckCircle2 size={20} strokeWidth={3} />
+              ) : (
+                <CloudUpload size={20} strokeWidth={3} />
+              )}
+              {saveSuccess ? 'Sauvegardé !' : 'Sauvegarder Cloud'}
             </button>
           </div>
         </div>
@@ -258,6 +370,65 @@ const App: React.FC = () => {
             )}
           </div>
         </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col min-h-0">
+            <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 px-1">
+              Historique Cloud
+            </h2>
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              {isLoadingCloud ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <Loader2 className="animate-spin mb-2" size={24} />
+                  <p className="text-[10px] font-bold uppercase tracking-widest">Chargement...</p>
+                </div>
+              ) : cloudFiles.length > 0 ? (
+                cloudFiles.map((file) => (
+                  <div key={file.$id} className="bg-white p-2 rounded-xl border border-slate-100 flex items-center gap-3 group hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-14 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0 border border-slate-200">
+                      <img src={getFilePreview(file.$id)} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-slate-800 truncate">{file.name}</p>
+                      <p className="text-[9px] text-slate-400">
+                        {new Date(file.$createdAt).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={getFileDownload(file.$id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
+                        title="Télécharger"
+                      >
+                        <Download size={14} />
+                      </a>
+                      <button
+                        onClick={() => handleDeleteCloudFile(file.$id)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                  <CloudUpload className="mx-auto text-slate-300 mb-2 opacity-50" size={28} />
+                  <p className="text-xs font-medium text-slate-400">Aucune sauvegarde</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 bg-slate-200/50 rounded-3xl p-4 md:p-8 flex items-center justify-center overflow-auto border-4 border-white shadow-inner">
