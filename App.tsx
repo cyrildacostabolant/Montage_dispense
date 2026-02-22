@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Download, Trash2, Plus, Image as ImageIcon, FileText, Loader2, Train, CloudUpload, CheckCircle2, History, LayoutDashboard, ExternalLink } from 'lucide-react';
 import { CroppedImage } from './types';
-import { saveToCloud, listCloudFiles, deleteCloudFile, getFilePreview, getFileDownload } from './services/appwrite';
+import { saveToCloud, listCloudFiles, deleteCloudFile, getFilePreview, getFileDownload, isAppwriteConfigured } from './services/appwrite';
 
 const CARD_WIDTH_MM = 75;
 const CARD_HEIGHT_MM = 112.5;
@@ -279,6 +279,15 @@ const App: React.FC = () => {
             Sauvegardes
           </button>
         </nav>
+
+        {!isAppwriteConfigured() && (
+          <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+            <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">⚠️ Configuration requise</p>
+            <p className="text-[10px] text-amber-700 leading-tight">
+              Veuillez configurer les variables d'environnement Appwrite dans AI Studio pour activer la sauvegarde.
+            </p>
+          </div>
+        )}
 
         {activeTab === 'editor' ? (
           <>

@@ -18,6 +18,13 @@ if (projectId) {
 export const storage = new Storage(client);
 
 /**
+ * Vérifie si la configuration est complète
+ */
+export const isAppwriteConfigured = () => {
+  return !!projectId && !!bucketId;
+};
+
+/**
  * Convertit un DataURL en File object pour Appwrite
  */
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -36,8 +43,12 @@ const dataURLtoFile = (dataurl: string, filename: string): File => {
  * Sauvegarde une image (DataURL) dans le bucket Appwrite
  */
 export const saveToCloud = async (dataUrl: string, name: string) => {
-  if (!projectId || !bucketId) {
-    throw new Error('Appwrite non configuré. Veuillez vérifier vos variables d\'environnement.');
+  const missing = [];
+  if (!projectId) missing.push('VITE_APPWRITE_PROJECT_ID');
+  if (!bucketId) missing.push('VITE_APPWRITE_BUCKET_ID');
+  
+  if (missing.length > 0) {
+    throw new Error(`Configuration Appwrite incomplète. Variables manquantes : ${missing.join(', ')}`);
   }
 
   const file = dataURLtoFile(dataUrl, `planche_${name}_${Date.now()}.jpg`);
